@@ -57,3 +57,51 @@ pub fn platform() -> Platform {
 pub fn rust_release_mode() -> bool {
     cfg!(not(debug_assertions))
 }
+
+use strum::{Display, EnumString, EnumVariantNames, VariantNames};
+
+#[repr(C)]
+#[derive(EnumString, Display, Debug, EnumVariantNames)]
+#[strum(ascii_case_insensitive, serialize_all = "title_case")]
+pub enum Item {
+    #[strum(serialize = "large chicken egg")]
+    LargeChickenEgg,
+    #[strum(serialize = "large chicken egg yolk")]
+    LargeChickenEggYolk,
+    #[strum(serialize = "large chicken egg white")]
+    LargeChickenEggWhite,
+    #[strum(serialize = "table salt")]
+    TableSalt,
+    #[strum(serialize = "table sugar")]
+    TableSugar,
+    #[strum(serialize = "water")]
+    Water,
+    #[strum(serialize = "wheat flour")]
+    WheatFlour,
+    #[strum(serialize = "active dry yeast")]
+    ActiveDryYeast,
+    #[strum(serialize = "cow butter")]
+    CowButter,
+}
+
+pub fn search_local_items(input: String) -> Vec<Box<Item>> {
+    use fuzzy_matcher::skim::SkimMatcherV2;
+    use fuzzy_matcher::FuzzyMatcher;
+    use std::str::FromStr;
+    use strum::{Display, EnumString, EnumVariantNames, VariantNames};
+    let matcher = SkimMatcherV2::default();
+    let mut display_items: Vec<Box<Item>> = vec![];
+    for item_string in Item::VARIANTS.iter() {
+        if matcher.fuzzy_match(item_string, &input).is_some() {
+            let item = match Item::from_str(item_string) {
+                Ok(item) => display_items.push(Box::new(item)),
+                Err(err) => {
+                    panic!(
+                        "item string was not in Item enum despite being generated from Item: {err}"
+                    )
+                }
+            };
+        }
+    }
+    display_items
+}

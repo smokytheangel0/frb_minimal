@@ -19,6 +19,22 @@ abstract class Native {
   Future<bool> rustReleaseMode({dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kRustReleaseModeConstMeta;
+
+  Future<List<Item>> searchLocalItems({required String input, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSearchLocalItemsConstMeta;
+}
+
+enum Item {
+  LargeChickenEgg,
+  LargeChickenEggYolk,
+  LargeChickenEggWhite,
+  TableSalt,
+  TableSugar,
+  Water,
+  WheatFlour,
+  ActiveDryYeast,
+  CowButter,
 }
 
 enum Platform {
@@ -68,7 +84,36 @@ class NativeImpl extends FlutterRustBridgeBase<NativeWire> implements Native {
         argNames: [],
       );
 
+  Future<List<Item>> searchLocalItems({required String input, dynamic hint}) =>
+      executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) =>
+            inner.wire_search_local_items(port_, _api2wire_String(input)),
+        parseSuccessData: _wire2api_list_box_item,
+        constMeta: kSearchLocalItemsConstMeta,
+        argValues: [input],
+        hint: hint,
+      ));
+
+  FlutterRustBridgeTaskConstMeta get kSearchLocalItemsConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "search_local_items",
+        argNames: ["input"],
+      );
+
   // Section: api2wire
+  ffi.Pointer<wire_uint_8_list> _api2wire_String(String raw) {
+    return _api2wire_uint_8_list(utf8.encoder.convert(raw));
+  }
+
+  int _api2wire_u8(int raw) {
+    return raw;
+  }
+
+  ffi.Pointer<wire_uint_8_list> _api2wire_uint_8_list(Uint8List raw) {
+    final ans = inner.new_uint_8_list_0(raw.length);
+    ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
+    return ans;
+  }
 
   // Section: api_fill_to_wire
 
@@ -79,8 +124,20 @@ bool _wire2api_bool(dynamic raw) {
   return raw as bool;
 }
 
+Item _wire2api_box_item(dynamic raw) {
+  return raw as Item;
+}
+
 int _wire2api_i32(dynamic raw) {
   return raw as int;
+}
+
+Item _wire2api_item(dynamic raw) {
+  return Item.values[raw];
+}
+
+List<Item> _wire2api_list_box_item(dynamic raw) {
+  return (raw as List<dynamic>).map(_wire2api_box_item).toList();
 }
 
 Platform _wire2api_platform(dynamic raw) {
@@ -137,6 +194,38 @@ class NativeWire implements FlutterRustBridgeWireBase {
   late final _wire_rust_release_mode =
       _wire_rust_release_modePtr.asFunction<void Function(int)>();
 
+  void wire_search_local_items(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> input,
+  ) {
+    return _wire_search_local_items(
+      port_,
+      input,
+    );
+  }
+
+  late final _wire_search_local_itemsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_search_local_items');
+  late final _wire_search_local_items = _wire_search_local_itemsPtr
+      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
+  ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
+    int len,
+  ) {
+    return _new_uint_8_list_0(
+      len,
+    );
+  }
+
+  late final _new_uint_8_list_0Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<wire_uint_8_list> Function(
+              ffi.Int32)>>('new_uint_8_list_0');
+  late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
+      .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
+
   void free_WireSyncReturnStruct(
     WireSyncReturnStruct val,
   ) {
@@ -164,6 +253,13 @@ class NativeWire implements FlutterRustBridgeWireBase {
           'store_dart_post_cobject');
   late final _store_dart_post_cobject = _store_dart_post_cobjectPtr
       .asFunction<void Function(DartPostCObjectFnType)>();
+}
+
+class wire_uint_8_list extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> ptr;
+
+  @ffi.Int32()
+  external int len;
 }
 
 typedef DartPostCObjectFnType = ffi.Pointer<
